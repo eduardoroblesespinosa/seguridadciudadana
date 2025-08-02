@@ -1,0 +1,143 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Seguridad Ciudadana (CSC)</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-dark text-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark-subtle shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-shield-check me-2" viewBox="0 0 16 16">
+                    <path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a.5.5 0 0 0 .101.025.5.5 0 0 0 .1-.025c.076-.023.174-.06.294-.118.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.95- .3-2.01-.667-2.837-.855A2.2 2.2 0 0 0 8 1.43a2.2 2.2 0 0 0-1.328.16Z"/>
+                    <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+                </svg>
+                Seguridad Ciudadana
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row g-4">
+            <!-- Left Column: Map -->
+            <div class="col-lg-8">
+                <div class="card bg-dark-subtle h-100 shadow">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title mb-3">Rastreo Global en Tiempo Real</h5>
+                        <div id="map" class="flex-grow-1 rounded"></div>
+                        <div id="map-loader" class="map-overlay">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <span class="mt-2">Estableciendo conexión GPS...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Profile & Status -->
+            <div class="col-lg-4">
+                <!-- Profile Card -->
+                <div class="card bg-dark-subtle mb-4 shadow">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Perfil del Ciudadano</h5>
+                        <p class="mb-2"><strong>Código de Seguridad (CSC):</strong></p>
+                        <p class="fs-5 font-monospace bg-dark p-2 rounded text-center" id="csc-code">Generando...</p>
+                        <p class="mb-1"><strong>Coordenadas:</strong></p>
+                        <p class="font-monospace" id="coordinates">--.----, --.----</p>
+                    </div>
+                </div>
+
+                <!-- Security Status Card -->
+                <div class="card mb-4 shadow" id="status-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Perfil de Seguridad Dinámico</h5>
+                        <p id="status-reason" class="small text-white-50 mb-2">Calculando...</p>
+                        <div class="d-flex align-items-center">
+                             <div id="status-indicator" class="status-indicator status-calculating me-3"></div>
+                             <span id="status-text" class="fs-5">Calculando...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manual Alert Card -->
+                <div class="card bg-dark-subtle mb-4 shadow">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Alerta Manual</h5>
+                        <p class="small text-white-50">Presione en caso de emergencia. Presione de nuevo para cancelar.</p>
+                        <button class="btn btn-danger btn-lg rounded-circle p-4" id="sos-button" aria-label="Activar S.O.S.">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+                                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Alerts Card -->
+                <div class="card bg-dark-subtle shadow">
+                    <div class="card-body">
+                         <h5 class="card-title">Alertas Ambientales (NOAA)</h5>
+                         <div id="alerts-container">
+                             <p id="alerts-loading" class="text-secondary">Esperando ubicación para buscar alertas...</p>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Call Modal -->
+    <div class="modal fade" id="emergency-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="emergency-modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-danger text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="emergency-modal-label">¡ALERTA DE EMERGENCIA!</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <p id="emergency-reason" class="lead mb-3">Se ha detectado una situación de posible peligro.</p>
+                    <p>Contactando servicios de emergencia en <strong id="emergency-country">su ubicación</strong>...</p>
+                    <hr class="border-light">
+                    <p class="small">Presione el botón para llamar inmediatamente.</p>
+                    <a id="emergency-call-link" href="tel:911" class="btn btn-light btn-lg fw-bold text-danger w-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-telephone-fill me-2" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.28 1.465l-2.097 1.873c.433.861 1.012 1.64 1.873 2.097l1.873-2.097a1.45 1.45 0 0 1 1.465.28l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877z"/>
+                        </svg>
+                        LLAMAR A <span id="emergency-number">911</span>
+                    </a>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-outline-light" id="cancel-emergency-button">Estoy a salvo / Falsa alarma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <script type="importmap">
+    {
+        "imports": {
+            "app": "./app.js",
+            "audio": "./audio.js",
+            "csc": "./csc.js",
+            "map": "./map.js",
+            "noaa": "./noaa.js",
+            "profile": "./profile.js",
+            "security": "./security.js",
+            "emergency": "./emergency.js"
+        }
+    }
+    </script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
