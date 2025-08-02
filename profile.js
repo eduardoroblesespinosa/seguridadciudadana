@@ -2,46 +2,61 @@
 const statusCard = document.getElementById('status-card');
 const statusIndicator = document.getElementById('status-indicator');
 const statusText = document.getElementById('status-text');
+const statusReason = document.getElementById('status-reason');
 const alertsContainer = document.getElementById('alerts-container');
 const alertsLoadingEl = document.getElementById('alerts-loading');
 
+const SEVERITY_LEVEL = {
+    danger: 3,
+    warning: 2,
+    safe: 1,
+    calculating: 0
+};
 
 /**
- * Updates the security profile display based on active alerts.
- * @param {Array<Object> | null} alerts - Array of alert objects from NOAA. Null if error.
- * @param {boolean} isError - Flag to indicate an error state.
+ * Updates the security profile display based on multiple factors.
+ * @param {object} data - The data for calculating security status.
+ * @param {object} data.movement - The result from movement analysis.
+ * @param {Array<object>|null} data.alerts - Array of alert objects from NOAA.
+ * @param {boolean} [data.isError=false] - Flag to indicate an error state.
  */
-export function updateSecurityProfile(alerts, isError = false) {
+export function updateSecurityProfile({ movement, alerts, isError = false }) {
+    // 1. Analyze Environmental Alerts
+    let envStatus = { level: 'safe', reason: 'No hay alertas meteorológicas.' };
     if (isError || alerts === null) {
-        setStatus('calculating', 'Estado Desconocido');
-        return;
+        envStatus = { level: 'calculating', reason: 'No se pudo verificar el estado de las alertas.' };
+    } else if (alerts.length > 0) {
+        const highestSeverity = alerts.reduce((max, alert) => {
+            const current = alert.properties.severity.toLowerCase();
+            if (current === 'extreme' || current === 'severe') return 'danger';
+            if (current === 'moderate' && max !== 'danger') return 'warning';
+            return max;
+        }, 'safe');
+
+        if (highestSeverity === 'danger') {
+            envStatus = { level: 'danger', reason: 'Alerta ambiental de severidad Extrema/Severa.' };
+        } else if (highestSeverity === 'warning') {
+            envStatus = { level: 'warning', reason: 'Alerta ambiental de severidad Moderada.' };
+        } else {
+            envStatus = { level: 'warning', reason: 'Alerta ambiental de severidad Menor detectada.' };
+        }
     }
 
-    if (alerts.length === 0) {
-        setStatus('safe', 'Seguro');
-        return;
-    }
+    // 2. Get Movement Status
+    const movStatus = { level: movement.status, reason: movement.reason };
 
-    // Determine the highest severity level from all active alerts.
-    const severity = alerts.reduce((maxSeverity, alert) => {
-        const currentSeverity = alert.properties.severity.toLowerCase();
-        if (currentSeverity === 'extreme' || currentSeverity === 'severe') {
-            return 'danger';
-        }
-        if (currentSeverity === 'moderate' && maxSeverity !== 'danger') {
-            return 'warning';
-        }
-        return maxSeverity; // Keep current max if new one is lower
-    }, 'safe'); // Default to safe and upgrade if severe alerts are found
-
-    if (severity === 'danger') {
-        setStatus('danger', 'Peligro Inminente');
-    } else if (severity === 'warning') {
-        setStatus('warning', 'Alerta Activa');
+    // 3. Determine Final Status (highest severity wins)
+    let finalStatus, finalReason;
+    if (SEVERITY_LEVEL[movStatus.level] > SEVERITY_LEVEL[envStatus.level]) {
+        finalStatus = movStatus.level;
+        finalReason = movStatus.reason;
     } else {
-        // Covers 'minor' or other severities
-        setStatus('warning', 'Precaución');
+        finalStatus = envStatus.level;
+        finalReason = envStatus.reason;
     }
+
+    // 4. Update UI
+    setStatus(finalStatus, finalReason);
 }
 
 /**
@@ -83,16 +98,24 @@ export function updateAlertsUI({ loading = false, alerts = null, error = null })
     }
 }
 
-
 /**
  * Helper to set the visual status on the profile card.
  * @param {string} type - 'safe', 'warning', 'danger', or 'calculating'
- * @param {string} text - The text to display.
+ * @param {string} reason - The text explaining the status.
  */
-function setStatus(type, text) {
+function setStatus(type, reason) {
+    let text;
+    switch (type) {
+        case 'danger': text = 'Peligro Inminente'; break;
+        case 'warning': text = 'Alerta Activa'; break;
+        case 'safe': text = 'Seguro'; break;
+        default: text = 'Calculando...'; break;
+    }
+
     statusIndicator.className = `status-indicator status-${type}`;
     statusCard.className = `card mb-4 shadow status-card-${type}`;
     statusText.textContent = text;
+    statusReason.textContent = reason;
 }
 
 /**
@@ -113,4 +136,3 @@ function getAlertColorClass(severity) {
             return 'bg-secondary bg-opacity-25';
     }
 }
-

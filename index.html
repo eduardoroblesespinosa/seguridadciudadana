@@ -35,7 +35,7 @@
                         <div id="map-loader" class="map-overlay">
                             <div class="d-flex flex-column align-items-center">
                                 <div class="spinner-border text-primary" role="status"></div>
-                                <span class="mt-2">Obteniendo geolocalización...</span>
+                                <span class="mt-2">Estableciendo conexión GPS...</span>
                             </div>
                         </div>
                     </div>
@@ -59,10 +59,25 @@
                 <div class="card mb-4 shadow" id="status-card">
                     <div class="card-body">
                         <h5 class="card-title">Perfil de Seguridad Dinámico</h5>
+                        <p id="status-reason" class="small text-white-50 mb-2">Calculando...</p>
                         <div class="d-flex align-items-center">
                              <div id="status-indicator" class="status-indicator status-calculating me-3"></div>
                              <span id="status-text" class="fs-5">Calculando...</span>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Manual Alert Card -->
+                <div class="card bg-dark-subtle mb-4 shadow">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Alerta Manual</h5>
+                        <p class="small text-white-50">Presione en caso de emergencia.</p>
+                        <button class="btn btn-danger btn-lg rounded-circle p-4" id="sos-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+                                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                            </svg>
+                            <span class="visually-hidden">S.O.S.</span>
+                        </button>
                     </div>
                 </div>
 
@@ -88,10 +103,12 @@
     {
         "imports": {
             "app": "./app.js",
+            "audio": "./audio.js",
             "csc": "./csc.js",
             "map": "./map.js",
             "noaa": "./noaa.js",
-            "profile": "./profile.js"
+            "profile": "./profile.js",
+            "security": "./security.js"
         }
     }
     </script>

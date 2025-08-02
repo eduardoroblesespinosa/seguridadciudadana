@@ -16,13 +16,19 @@ async function getAlertsEndpoint(lat, lon) {
 
     const response = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
     if (!response.ok) {
-        throw new Error(`NWS points API failed with status: ${response.status}`);
+        if (response.status === 404) {
+            // Create a custom error to be caught specifically in the app logic
+            const err = new Error("El servicio de alertas meteorológicas solo está disponible en EE. UU. y sus territorios.");
+            err.isCoverageError = true;
+            throw err;
+        }
+        throw new Error(`La API de puntos de NWS falló con el estado: ${response.status}`);
     }
     const data = await response.json();
     const alertsUrl = data.properties.forecastZone;
 
     if (!alertsUrl) {
-         throw new Error("Could not determine forecast zone for alerts.");
+         throw new Error("No se pudo determinar la zona de pronóstico para las alertas.");
     }
 
     gridpointCache.set(cacheKey, alertsUrl);
@@ -43,10 +49,9 @@ export async function getActiveAlertsForLocation(lat, lon) {
     const alertResponse = await fetch(`${alertZoneUrl}/alerts`);
 
     if (!alertResponse.ok) {
-        throw new Error(`NWS alerts API failed with status: ${alertResponse.status}`);
+        throw new Error(`La API de alertas de NWS falló con el estado: ${alertResponse.status}`);
     }
 
     const alertData = await alertResponse.json();
     return alertData.features || [];
 }
-

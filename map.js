@@ -36,22 +36,22 @@ export function initMap() {
 }
 
 /**
- * Creates the user marker but doesn't add it to the map yet.
+ * Creates the user marker and adds it to the map.
  * @param {L.Map} map - The Leaflet map instance.
- * @returns {Promise<L.Marker>} - A promise that resolves with the user marker.
+ * @param {number} lat - The initial latitude.
+ * @param {number} lon - The initial longitude.
+ * @returns {L.Marker} - The created user marker.
  */
-export function createUserMarker(map) {
-    return new Promise((resolve) => {
-        const marker = L.marker([0, 0], { icon: userIcon });
-        marker.bindPopup("<b>Tu Ubicación</b><br>Posición actual.").addTo(map);
-        resolve(marker);
-    });
+export function createUserMarker(map, lat, lon) {
+    const marker = L.marker([lat, lon], { icon: userIcon });
+    marker.bindPopup("<b>Tu Ubicación</b><br>Posición actual.").addTo(map);
+    return marker;
 }
 
 
 /**
  * Updates the user's position on the map.
- * Centers the map on the user on the first update.
+ * Smoothly pans the map to the new location.
  * @param {L.Map} map - The Leaflet map instance.
  * @param {L.Marker} marker - The user's marker.
  * @param {number} lat - Latitude.
@@ -61,12 +61,6 @@ export function updateUserPosition(map, marker, lat, lon) {
     const newLatLng = new L.LatLng(lat, lon);
     marker.setLatLng(newLatLng);
 
-    // If map is still at default view, zoom to user
-    if (map.getZoom() < 13) {
-        map.setView(newLatLng, 15);
-    } else {
-        // Smoothly pan to the new location if it's already zoomed in
-        map.panTo(newLatLng);
-    }
+    // Smoothly pan to the new location
+    map.panTo(newLatLng);
 }
-
